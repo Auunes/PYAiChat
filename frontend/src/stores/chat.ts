@@ -23,7 +23,7 @@ export const useChatStore = defineStore('chat', () => {
     isStreaming.value = true
 
     const assistantMessageIndex = messages.value.length
-    messages.value.push({ role: 'assistant', content: '' })
+    messages.value.push({ role: 'assistant', content: '', reasoning: '' })
 
     try {
       // 构建消息列表，如果有系统提示词则添加到开头
@@ -47,9 +47,21 @@ export const useChatStore = defineStore('chat', () => {
           throw new Error(chunk.error.message)
         }
 
-        if (chunk.choices && chunk.choices[0]?.delta?.content) {
-          // 使用索引直接更新，确保响应式
-          messages.value[assistantMessageIndex].content += chunk.choices[0].delta.content
+        if (chunk.choices && chunk.choices[0]?.delta) {
+          const delta = chunk.choices[0].delta
+
+          // 处理思考内容（reasoning models like o1）
+          if (delta.reasoning_content) {
+            if (!messages.value[assistantMessageIndex].reasoning) {
+              messages.value[assistantMessageIndex].reasoning = ''
+            }
+            messages.value[assistantMessageIndex].reasoning += delta.reasoning_content
+          }
+
+          // 处理回复内容
+          if (delta.content) {
+            messages.value[assistantMessageIndex].content += delta.content
+          }
         }
       }
     } catch (error: any) {

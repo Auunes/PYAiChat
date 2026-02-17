@@ -60,11 +60,13 @@
           >
             {{ message.content }}
           </div>
-          <div
-            v-else
-            class="markdown-body prose prose-sm max-w-none"
-            v-html="renderMarkdown(message.content)"
-          ></div>
+          <div v-else>
+            <div
+              class="markdown-body prose prose-sm max-w-none"
+              v-html="renderMarkdown(message.content)"
+            ></div>
+            <ThinkingPanel :reasoning="message.reasoning" />
+          </div>
         </div>
       </div>
 
@@ -234,6 +236,7 @@ import { useUserStore } from '@/stores/user'
 import { chatApi } from '@/api/chat'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
+import ThinkingPanel from '@/components/ThinkingPanel.vue'
 
 // 配置 marked
 marked.setOptions({

@@ -14,7 +14,8 @@
       "Bash(python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload)",
       "Bash(test:*)",
       "Bash(timeout 5 ../.venv/Scripts/python.exe:*)",
-      "Bash(start /B ../.venv/Scripts/python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000)"
+      "Bash(start /B ../.venv/Scripts/python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000)",
+      "Bash(npm run build:*)"
     ]
   }
 }

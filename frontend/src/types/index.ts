@@ -38,6 +38,7 @@ export interface ModelInfo {
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant'
   content: string
+  reasoning?: string  // 思考过程（仅 reasoning 模型）
 }
 
 export interface ChatCompletionRequest {
