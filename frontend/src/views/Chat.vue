@@ -1,41 +1,43 @@
 <template>
   <div class="flex flex-col h-screen bg-gray-50">
     <!-- Header -->
-    <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-gray-800">AI Chat</h1>
-      <div class="flex items-center gap-4">
-        <select
-          v-model="chatStore.selectedModel"
-          class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-        >
-          <option v-for="model in chatStore.models" :key="model.id" :value="model.id">
-            {{ model.name }}
-          </option>
-        </select>
-
-        <div v-if="userStore.isLoggedIn" class="flex items-center gap-2">
-          <span class="text-sm text-gray-600">已登录</span>
-          <button
-            @click="handleLogout"
-            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+    <header class="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+      <div class="flex items-center justify-between gap-2 sm:gap-4">
+        <h1 class="text-lg sm:text-2xl font-bold text-gray-800 flex-shrink-0">AI Chat</h1>
+        <div class="flex items-center gap-2 sm:gap-4 flex-wrap justify-end">
+          <select
+            v-model="chatStore.selectedModel"
+            class="px-2 sm:px-4 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
           >
-            退出
-          </button>
+            <option v-for="model in chatStore.models" :key="model.id" :value="model.id">
+              {{ model.name }}
+            </option>
+          </select>
+
+          <div v-if="userStore.isLoggedIn" class="flex items-center gap-1 sm:gap-2">
+            <span class="text-xs sm:text-sm text-gray-600 hidden sm:inline">已登录</span>
+            <button
+              @click="handleLogout"
+              class="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+            >
+              退出
+            </button>
+          </div>
+          <router-link
+            v-else
+            to="/login"
+            class="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition"
+          >
+            登录
+          </router-link>
         </div>
-        <router-link
-          v-else
-          to="/login"
-          class="px-4 py-2 text-sm text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition"
-        >
-          登录
-        </router-link>
       </div>
     </header>
 
     <!-- Chat Messages -->
-    <div ref="messagesContainer" class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-      <div v-if="chatStore.messages.length === 0" class="text-center text-gray-500 mt-20">
-        <p class="text-lg">开始与 AI 对话吧！</p>
+    <div ref="messagesContainer" class="flex-1 overflow-y-auto px-3 sm:px-6 py-3 sm:py-4 space-y-3 sm:space-y-4">
+      <div v-if="chatStore.messages.length === 0" class="text-center text-gray-500 mt-10 sm:mt-20">
+        <p class="text-base sm:text-lg">开始与 AI 对话吧！</p>
       </div>
 
       <div
@@ -48,7 +50,7 @@
       >
         <div
           :class="[
-            'max-w-3xl px-6 py-4 rounded-2xl',
+            'max-w-[85%] sm:max-w-3xl px-3 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl',
             message.role === 'user'
               ? 'bg-primary-600 text-white'
               : 'bg-white border border-gray-200 text-gray-800',
@@ -56,13 +58,13 @@
         >
           <div
             v-if="message.role === 'user'"
-            class="whitespace-pre-wrap"
+            class="whitespace-pre-wrap text-sm sm:text-base"
           >
             {{ message.content }}
           </div>
           <div v-else>
             <div
-              class="markdown-body prose prose-sm max-w-none"
+              class="markdown-body prose prose-sm max-w-none text-sm sm:text-base"
               v-html="renderMarkdown(message.content)"
             ></div>
             <ThinkingPanel :reasoning="message.reasoning" />
@@ -71,7 +73,7 @@
       </div>
 
       <div v-if="chatStore.isStreaming" class="flex justify-start">
-        <div class="bg-white border border-gray-200 px-6 py-4 rounded-2xl">
+        <div class="bg-white border border-gray-200 px-3 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl">
           <div class="flex items-center gap-2">
             <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
             <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
@@ -82,96 +84,98 @@
     </div>
 
     <!-- Input Area -->
-    <div class="bg-white border-t border-gray-200 px-6 py-4">
-      <form @submit.prevent="handleSend" class="flex gap-4">
+    <div class="bg-white border-t border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
+      <form @submit.prevent="handleSend" class="flex flex-col sm:flex-row gap-2 sm:gap-4">
         <input
           v-model="inputMessage"
           type="text"
           :disabled="chatStore.isStreaming"
           placeholder="输入消息..."
-          class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition disabled:opacity-50"
+          class="flex-1 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition disabled:opacity-50"
         />
-        <button
-          type="button"
-          @click="openPromptModal"
-          :disabled="chatStore.isStreaming"
-          class="px-6 py-3 border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-lg transition disabled:opacity-50"
-        >
-          提示词
-        </button>
-        <button
-          type="submit"
-          :disabled="!inputMessage.trim() || chatStore.isStreaming"
-          class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
-        >
-          发送
-        </button>
-        <button
-          type="button"
-          @click="chatStore.clearMessages"
-          :disabled="chatStore.isStreaming"
-          class="px-6 py-3 border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-lg transition disabled:opacity-50"
-        >
-          清空
-        </button>
+        <div class="flex gap-2 sm:gap-4">
+          <button
+            type="button"
+            @click="openPromptModal"
+            :disabled="chatStore.isStreaming"
+            class="flex-1 sm:flex-none px-3 sm:px-6 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-lg transition disabled:opacity-50"
+          >
+            提示词
+          </button>
+          <button
+            type="submit"
+            :disabled="!inputMessage.trim() || chatStore.isStreaming"
+            class="flex-1 sm:flex-none px-3 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
+          >
+            发送
+          </button>
+          <button
+            type="button"
+            @click="showClearConfirm = true"
+            :disabled="chatStore.isStreaming"
+            class="flex-1 sm:flex-none px-3 sm:px-6 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-lg transition disabled:opacity-50"
+          >
+            清空
+          </button>
+        </div>
       </form>
     </div>
 
     <!-- Prompt Modal -->
     <div
       v-if="showPromptModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
       @click="showPromptModal = false"
     >
-      <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4" @click.stop>
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">系统提示词设置</h3>
-        <p class="text-sm text-gray-600 mb-4">
+      <div class="bg-white rounded-lg p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto" @click.stop>
+        <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">系统提示词设置</h3>
+        <p class="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
           系统提示词会在每次对话时自动添加到消息开头，用于设定 AI 的角色、行为和回复风格。
         </p>
 
         <!-- 预设提示词 -->
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-2">快速选择预设</label>
-          <div class="grid grid-cols-2 gap-2">
+        <div class="mb-3 sm:mb-4">
+          <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-2">快速选择预设</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               v-for="preset in promptPresets"
               :key="preset.name"
               @click="tempPrompt = preset.content"
-              class="px-4 py-2 text-sm text-left border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              class="px-3 sm:px-4 py-2 text-sm text-left border border-gray-300 rounded-lg hover:bg-gray-50 transition"
             >
-              <div class="font-medium text-gray-800">{{ preset.name }}</div>
+              <div class="font-medium text-gray-800 text-xs sm:text-sm">{{ preset.name }}</div>
               <div class="text-xs text-gray-500 truncate">{{ preset.description }}</div>
             </button>
           </div>
         </div>
 
         <!-- 自定义提示词 -->
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-2">自定义提示词</label>
+        <div class="mb-3 sm:mb-4">
+          <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-2">自定义提示词</label>
           <textarea
             v-model="tempPrompt"
             rows="6"
             placeholder="输入自定义系统提示词..."
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition resize-none"
+            class="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition resize-none"
           ></textarea>
         </div>
 
-        <div class="flex justify-end gap-3">
+        <div class="flex justify-end gap-2 sm:gap-3">
           <button
             @click="tempPrompt = ''"
-            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+            class="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
           >
             清空
           </button>
           <button
             @click="showPromptModal = false"
-            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+            class="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
           >
             取消
           </button>
           <button
             @click="savePrompt"
-            class="px-4 py-2 text-sm text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition"
+            class="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition"
           >
             保存
           </button>
@@ -182,15 +186,15 @@
     <!-- Error Modal -->
     <div
       v-if="errorMessage"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
       @click="errorMessage = ''"
     >
-      <div class="bg-white rounded-lg p-6 max-w-md mx-4" @click.stop>
-        <h3 class="text-lg font-semibold text-red-600 mb-2">错误</h3>
-        <p class="text-gray-700">{{ errorMessage }}</p>
+      <div class="bg-white rounded-lg p-4 sm:p-6 max-w-md w-full" @click.stop>
+        <h3 class="text-base sm:text-lg font-semibold text-red-600 mb-2">错误</h3>
+        <p class="text-sm sm:text-base text-gray-700">{{ errorMessage }}</p>
         <button
           @click="errorMessage = ''"
-          class="mt-4 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+          class="mt-4 w-full px-4 py-2 text-sm sm:text-base bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
         >
           关闭
         </button>
@@ -200,7 +204,7 @@
     <!-- Success Toast -->
     <div
       v-if="successMessage"
-      class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in"
+      class="fixed top-4 right-4 left-4 sm:left-auto bg-green-500 text-white px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-lg shadow-lg z-50 animate-fade-in"
     >
       {{ successMessage }}
     </div>
@@ -208,21 +212,49 @@
     <!-- Announcement Modal -->
     <div
       v-if="showAnnouncementModal && announcement"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
       @click="showAnnouncementModal = false"
     >
-      <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto" @click.stop>
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">{{ announcement.title }}</h3>
+      <div class="bg-white rounded-lg p-4 sm:p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto" @click.stop>
+        <h3 class="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">{{ announcement.title }}</h3>
         <div
-          class="markdown-body prose prose-sm max-w-none text-gray-700 mb-6"
+          class="markdown-body prose prose-sm max-w-none text-sm sm:text-base text-gray-700 mb-4 sm:mb-6"
           v-html="renderMarkdown(announcement.content)"
         ></div>
         <button
           @click="showAnnouncementModal = false"
-          class="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition"
+          class="w-full px-4 py-2 text-sm sm:text-base bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition"
         >
           我知道了
         </button>
+      </div>
+    </div>
+
+    <!-- Clear Confirm Modal -->
+    <div
+      v-if="showClearConfirm"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      @click="showClearConfirm = false"
+    >
+      <div class="bg-white rounded-lg p-4 sm:p-6 max-w-md w-full" @click.stop>
+        <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-2 sm:mb-3">确认清空</h3>
+        <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
+          确定要清空所有聊天记录吗？此操作无法撤销。
+        </p>
+        <div class="flex gap-2 sm:gap-3">
+          <button
+            @click="showClearConfirm = false"
+            class="flex-1 px-4 py-2 text-sm sm:text-base text-gray-700 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+          >
+            取消
+          </button>
+          <button
+            @click="handleClearMessages"
+            class="flex-1 px-4 py-2 text-sm sm:text-base bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+          >
+            确认清空
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -264,6 +296,7 @@ const showPromptModal = ref(false)
 const tempPrompt = ref('')
 const showAnnouncementModal = ref(false)
 const announcement = ref<any>(null)
+const showClearConfirm = ref(false)
 
 // 预设提示词
 const promptPresets = [
@@ -383,5 +416,14 @@ const handleSend = async () => {
 const handleLogout = () => {
   userStore.logout()
   router.push('/login')
+}
+
+const handleClearMessages = () => {
+  chatStore.clearMessages()
+  showClearConfirm.value = false
+  successMessage.value = '聊天记录已清空'
+  setTimeout(() => {
+    successMessage.value = ''
+  }, 2000)
 }
 </script>

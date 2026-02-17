@@ -1,14 +1,14 @@
 <template>
   <div
     v-if="reasoning"
-    class="mt-3 border-t border-gray-200 pt-3"
+    class="mt-2 sm:mt-3 border-t border-gray-200 pt-2 sm:pt-3"
   >
     <button
       @click="isExpanded = !isExpanded"
-      class="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition"
+      class="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600 hover:text-gray-800 transition"
     >
       <svg
-        :class="['w-4 h-4 transition-transform', isExpanded ? 'rotate-90' : '']"
+        :class="['w-3 h-3 sm:w-4 sm:h-4 transition-transform', isExpanded ? 'rotate-90' : '']"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -23,9 +23,9 @@
 
     <div
       v-if="isExpanded"
-      class="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200"
+      class="mt-2 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200 max-h-60 sm:max-h-96 overflow-y-auto"
     >
-      <div class="text-sm text-gray-700 whitespace-pre-wrap font-mono">
+      <div class="text-xs sm:text-sm text-gray-700 whitespace-pre-wrap font-mono break-words">
         {{ reasoning }}
       </div>
     </div>
