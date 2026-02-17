@@ -13,5 +13,6 @@ class Channel(Base):
     model_id = Column(String(255), nullable=False)
     rpm_limit = Column(Integer, default=60)
     is_enabled = Column(Boolean, default=True)
+    sort_order = Column(Integer, default=0, nullable=False)  # 排序字段，数值越小越靠前
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

@@ -21,7 +21,7 @@ class ChatService:
         seen = set()
         for channel in channels:
             if channel.model_id not in seen:
-                models.append({"id": channel.model_id, "name": channel.model_id})
+                models.append({"id": channel.model_id, "name": channel.name})
                 seen.add(channel.model_id)
         return models
 

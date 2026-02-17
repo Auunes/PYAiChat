@@ -70,6 +70,35 @@ async def create_channel(
     return channel
 
 
+@router.post("/channels/test")
+async def test_channel(
+    channel_data: ChannelCreate,
+    _: dict = Depends(verify_admin),
+):
+    """测试渠道连接"""
+    result = await ChannelService.test_channel(channel_data)
+    return result
+
+
+@router.put("/channels/reorder")
+async def reorder_channels(
+    channel_orders: List[dict],
+    db: AsyncSession = Depends(get_db),
+    _: dict = Depends(verify_admin),
+):
+    """批量更新渠道顺序"""
+    for item in channel_orders:
+        channel_id = item.get("id")
+        sort_order = item.get("sort_order")
+        if channel_id and sort_order is not None:
+            result = await db.execute(select(Channel).where(Channel.id == channel_id))
+            channel = result.scalar_one_or_none()
+            if channel:
+                channel.sort_order = sort_order
+    await db.commit()
+    return {"message": "顺序更新成功"}
+
+
 @router.put("/channels/{channel_id}", response_model=ChannelResponse)
 async def update_channel(
     channel_id: int,

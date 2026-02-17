@@ -2,14 +2,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models import Channel
 from app.schemas import ChannelCreate, ChannelUpdate
-from typing import List, Optional
+from typing import List, Optional, Dict
+import httpx
+import asyncio
 
 
 class ChannelService:
     @staticmethod
     async def get_channels(db: AsyncSession, enabled_only: bool = False) -> List[Channel]:
         """获取渠道列表"""
-        query = select(Channel)
+        query = select(Channel).order_by(Channel.sort_order, Channel.id)
         if enabled_only:
             query = query.where(Channel.is_enabled == True)
         result = await db.execute(query)
@@ -67,3 +69,45 @@ class ChannelService:
         await db.delete(channel)
         await db.commit()
         return True
+
+    @staticmethod
+    async def test_channel(channel_data: ChannelCreate) -> Dict[str, any]:
+        """测试渠道连接"""
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                # 构建测试请求
+                headers = {
+                    "Authorization": f"Bearer {channel_data.api_key}",
+                    "Content-Type": "application/json",
+                }
+
+                # 发送一个简单的测试请求
+                payload = {
+                    "model": channel_data.model_id,
+                    "messages": [{"role": "user", "content": "test"}],
+                    "max_tokens": 5,
+                }
+
+                # 确保base_url正确拼接
+                base_url = channel_data.base_url.rstrip("/")
+                if not base_url.endswith("/chat/completions"):
+                    if base_url.endswith("/v1"):
+                        url = base_url + "/chat/completions"
+                    else:
+                        url = base_url + "/v1/chat/completions"
+                else:
+                    url = base_url
+
+                response = await client.post(url, json=payload, headers=headers)
+
+                if response.status_code == 200:
+                    return {"success": True, "message": "连接成功"}
+                else:
+                    return {
+                        "success": False,
+                        "message": f"连接失败: HTTP {response.status_code} - {response.text[:200]}",
+                    }
+        except httpx.TimeoutException:
+            return {"success": False, "message": "连接超时"}
+        except Exception as e:
+            return {"success": False, "message": f"连接失败: {str(e)}"}

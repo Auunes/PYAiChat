@@ -28,6 +28,14 @@ export const adminApi = {
     return api.delete(`/admin/channels/${id}`)
   },
 
+  testChannel(data: ChannelCreate) {
+    return api.post<{ success: boolean; message: string }>('/admin/channels/test', data)
+  },
+
+  reorderChannels(channelOrders: Array<{ id: number; sort_order: number }>) {
+    return api.put('/admin/channels/reorder', channelOrders)
+  },
+
   // 系统配置
   getConfig() {
     return api.get<SystemConfig>('/admin/config')

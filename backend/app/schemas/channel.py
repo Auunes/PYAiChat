@@ -10,6 +10,7 @@ class ChannelBase(BaseModel):
     model_id: str = Field(..., min_length=1, max_length=255)
     rpm_limit: int = Field(default=60, ge=1)
     is_enabled: bool = True
+    sort_order: int = Field(default=0)
 
 
 class ChannelCreate(ChannelBase):
@@ -23,6 +24,7 @@ class ChannelUpdate(BaseModel):
     model_id: Optional[str] = Field(None, min_length=1, max_length=255)
     rpm_limit: Optional[int] = Field(None, ge=1)
     is_enabled: Optional[bool] = None
+    sort_order: Optional[int] = None
 
 
 class ChannelResponse(BaseModel):
@@ -33,6 +35,7 @@ class ChannelResponse(BaseModel):
     model_id: str
     rpm_limit: int
     is_enabled: bool
+    sort_order: int
     created_at: datetime
     updated_at: datetime
 

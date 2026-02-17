@@ -18,6 +18,7 @@
       <table class="w-full">
         <thead class="bg-gray-50 border-b border-gray-200">
           <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">排序</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">名称</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">模型</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">RPM 限制</th>
@@ -26,7 +27,25 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
-          <tr v-for="channel in channels" :key="channel.id">
+          <tr
+            v-for="(channel, index) in channels"
+            :key="channel.id"
+            draggable="true"
+            @dragstart="handleDragStart(index)"
+            @dragover.prevent="handleDragOver(index)"
+            @drop="handleDrop(index)"
+            @dragend="handleDragEnd"
+            :class="[
+              'cursor-move transition-colors',
+              draggedIndex === index ? 'opacity-50' : '',
+              dragOverIndex === index ? 'bg-blue-50' : 'hover:bg-gray-50'
+            ]"
+          >
+            <td class="px-6 py-4 text-sm text-gray-900">
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+              </svg>
+            </td>
             <td class="px-6 py-4 text-sm text-gray-900">{{ channel.name }}</td>
             <td class="px-6 py-4 text-sm text-gray-900">{{ channel.model_id }}</td>
             <td class="px-6 py-4 text-sm text-gray-900">{{ channel.rpm_limit }}</td>
@@ -114,6 +133,14 @@
             <label class="text-sm text-gray-700">启用</label>
           </div>
           <div class="flex gap-2">
+            <button
+              type="button"
+              @click="testChannelConnection"
+              :disabled="testing"
+              class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition"
+            >
+              {{ testing ? '测试中...' : '测试连接' }}
+            </button>
             <button type="submit" class="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg">
               {{ editingChannel ? '更新' : '创建' }}
             </button>
@@ -137,6 +164,9 @@ const loading = ref(true)
 const showCreateModal = ref(false)
 const editingChannel = ref<Channel | null>(null)
 const showApiKey = ref(false)
+const testing = ref(false)
+const draggedIndex = ref<number | null>(null)
+const dragOverIndex = ref<number | null>(null)
 const formData = ref<ChannelCreate>({
   name: '',
   base_url: '',
@@ -198,6 +228,73 @@ const deleteChannelConfirm = async (id: number) => {
       console.error('Failed to delete channel:', error)
     }
   }
+}
+
+const testChannelConnection = async () => {
+  testing.value = true
+  try {
+    const response = await adminApi.testChannel(formData.value)
+    if (response.data.success) {
+      alert('测试成功：' + response.data.message)
+    } else {
+      alert('测试失败：' + response.data.message)
+    }
+  } catch (error: any) {
+    const message = error.response?.data?.detail || error.message || '测试失败'
+    alert('测试失败：' + message)
+  } finally {
+    testing.value = false
+  }
+}
+
+const handleDragStart = (index: number) => {
+  draggedIndex.value = index
+}
+
+const handleDragOver = (index: number) => {
+  dragOverIndex.value = index
+}
+
+const handleDrop = async (dropIndex: number) => {
+  if (draggedIndex.value === null || draggedIndex.value === dropIndex) {
+    draggedIndex.value = null
+    dragOverIndex.value = null
+    return
+  }
+
+  const fromIndex = draggedIndex.value
+
+  // 重新排列数组
+  const newChannels = [...channels.value]
+  const [draggedItem] = newChannels.splice(fromIndex, 1)
+  newChannels.splice(dropIndex, 0, draggedItem)
+
+  // 准备更新数据
+  const channelOrders = newChannels.map((channel, index) => ({
+    id: channel.id,
+    sort_order: index * 10
+  }))
+
+  console.log('更新渠道顺序:', channelOrders)
+
+  try {
+    await adminApi.reorderChannels(channelOrders)
+    console.log('顺序更新成功')
+    // 更新成功后重新加载
+    await loadChannels()
+  } catch (error) {
+    console.error('Failed to update channel order:', error)
+    alert('更新顺序失败')
+    // 如果失败，重新加载
+    await loadChannels()
+  } finally {
+    draggedIndex.value = null
+    dragOverIndex.value = null
+  }
+}
+
+const handleDragEnd = () => {
+  // 不在这里清理状态，在handleDrop中清理
 }
 
 onMounted(loadChannels)

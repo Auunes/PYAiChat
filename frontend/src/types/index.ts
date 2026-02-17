@@ -17,6 +17,7 @@ export interface Channel {
   model_id: string
   rpm_limit: number
   is_enabled: boolean
+  sort_order: number
   created_at: string
   updated_at: string
 }
@@ -28,6 +29,7 @@ export interface ChannelCreate {
   model_id: string
   rpm_limit: number
   is_enabled: boolean
+  sort_order?: number
 }
 
 export interface ModelInfo {
