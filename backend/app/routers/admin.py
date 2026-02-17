@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, extract
 from app.database import get_db
-from app.models import Channel, SystemConfig, BlockedIP, ChatLog
+from app.models import Channel, SystemConfig, BlockedIP, ChatLog, Announcement
 from app.schemas import (
     ChannelCreate,
     ChannelUpdate,
@@ -13,6 +13,9 @@ from app.schemas import (
     BlockedIPResponse,
     ChatLogResponse,
     StatsResponse,
+    AnnouncementCreate,
+    AnnouncementUpdate,
+    AnnouncementResponse,
 )
 from app.services import ChannelService
 from app.utils import decode_access_token, is_ip_in_range
@@ -340,3 +343,70 @@ async def get_stats(
         token_stats=token_stats,
         active_users=active_users,
     )
+
+
+# ==================== 公告管理 ====================
+
+
+@router.get("/announcements", response_model=List[AnnouncementResponse])
+async def get_announcements(
+    db: AsyncSession = Depends(get_db),
+    _: None = Depends(verify_admin),
+):
+    """获取所有公告"""
+    result = await db.execute(select(Announcement).order_by(Announcement.created_at.desc()))
+    announcements = result.scalars().all()
+    return announcements
+
+
+@router.post("/announcements", response_model=AnnouncementResponse)
+async def create_announcement(
+    announcement_data: AnnouncementCreate,
+    db: AsyncSession = Depends(get_db),
+    _: None = Depends(verify_admin),
+):
+    """创建公告"""
+    announcement = Announcement(**announcement_data.model_dump())
+    db.add(announcement)
+    await db.commit()
+    await db.refresh(announcement)
+    return announcement
+
+
+@router.put("/announcements/{announcement_id}", response_model=AnnouncementResponse)
+async def update_announcement(
+    announcement_id: int,
+    announcement_data: AnnouncementUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: None = Depends(verify_admin),
+):
+    """更新公告"""
+    result = await db.execute(select(Announcement).where(Announcement.id == announcement_id))
+    announcement = result.scalar_one_or_none()
+    if not announcement:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="公告不存在")
+
+    update_data = announcement_data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(announcement, key, value)
+
+    await db.commit()
+    await db.refresh(announcement)
+    return announcement
+
+
+@router.delete("/announcements/{announcement_id}")
+async def delete_announcement(
+    announcement_id: int,
+    db: AsyncSession = Depends(get_db),
+    _: None = Depends(verify_admin),
+):
+    """删除公告"""
+    result = await db.execute(select(Announcement).where(Announcement.id == announcement_id))
+    announcement = result.scalar_one_or_none()
+    if not announcement:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="公告不存在")
+
+    await db.delete(announcement)
+    await db.commit()
+    return {"message": "删除成功"}

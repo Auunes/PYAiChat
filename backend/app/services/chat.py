@@ -60,7 +60,7 @@ class ChatService:
             return
 
         # 调用上游 API
-        api_key = ChannelService.get_decrypted_api_key(channel)
+        api_key = channel.api_key
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",

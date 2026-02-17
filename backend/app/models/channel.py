@@ -9,7 +9,7 @@ class Channel(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(255), nullable=False)
     base_url = Column(String(500), nullable=False)
-    api_key = Column(Text, nullable=False)  # 加密存储
+    api_key = Column(Text, nullable=False)  # 明文存储
     model_id = Column(String(255), nullable=False)
     rpm_limit = Column(Integer, default=60)
     is_enabled = Column(Boolean, default=True)

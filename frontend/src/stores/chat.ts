@@ -8,6 +8,7 @@ export const useChatStore = defineStore('chat', () => {
   const models = ref<ModelInfo[]>([])
   const selectedModel = ref<string>('')
   const isStreaming = ref(false)
+  const systemPrompt = ref<string>('')
 
   const loadModels = async () => {
     const response = await chatApi.getModels()
@@ -25,9 +26,19 @@ export const useChatStore = defineStore('chat', () => {
     messages.value.push({ role: 'assistant', content: '' })
 
     try {
+      // 构建消息列表，如果有系统提示词则添加到开头
+      const messagesToSend: ChatMessage[] = []
+      if (systemPrompt.value.trim()) {
+        console.log('添加系统提示词:', systemPrompt.value)
+        messagesToSend.push({ role: 'system', content: systemPrompt.value })
+      }
+      messagesToSend.push(...messages.value.slice(0, -1))
+
+      console.log('发送的消息列表:', messagesToSend)
+
       const stream = chatApi.streamChatCompletion({
         model: selectedModel.value,
-        messages: messages.value.slice(0, -1),
+        messages: messagesToSend,
         stream: true,
       })
 
@@ -52,13 +63,19 @@ export const useChatStore = defineStore('chat', () => {
     messages.value = []
   }
 
+  const setSystemPrompt = (prompt: string) => {
+    systemPrompt.value = prompt
+  }
+
   return {
     messages,
     models,
     selectedModel,
     isStreaming,
+    systemPrompt,
     loadModels,
     sendMessage,
     clearMessages,
+    setSystemPrompt,
   }
 })

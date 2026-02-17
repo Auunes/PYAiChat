@@ -3,5 +3,6 @@ from app.models.channel import Channel
 from app.models.config import SystemConfig
 from app.models.blocked_ip import BlockedIP
 from app.models.chat_log import ChatLog
+from app.models.announcement import Announcement
 
-__all__ = ["User", "Channel", "SystemConfig", "BlockedIP", "ChatLog"]
+__all__ = ["User", "Channel", "SystemConfig", "BlockedIP", "ChatLog", "Announcement"]

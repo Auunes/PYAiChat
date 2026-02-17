@@ -9,7 +9,12 @@ const api = axios.create({
 
 // 请求拦截器：添加 token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
+  // 管理员接口使用 admin_token，其他接口使用 token
+  const isAdminRoute = config.url?.startsWith('/admin/')
+  const token = isAdminRoute
+    ? localStorage.getItem('admin_token')
+    : localStorage.getItem('token')
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }

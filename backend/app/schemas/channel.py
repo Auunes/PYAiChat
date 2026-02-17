@@ -29,6 +29,7 @@ class ChannelResponse(BaseModel):
     id: int
     name: str
     base_url: str
+    api_key: str
     model_id: str
     rpm_limit: int
     is_enabled: bool

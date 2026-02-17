@@ -47,7 +47,8 @@
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">IP</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">用户</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">模型</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tokens</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">输入Tokens</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">输出Tokens</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
@@ -58,9 +59,8 @@
             <td class="px-6 py-4 text-sm text-gray-900">{{ log.ip_address }}</td>
             <td class="px-6 py-4 text-sm text-gray-900">{{ log.username || '游客' }}</td>
             <td class="px-6 py-4 text-sm text-gray-900">{{ log.model_id }}</td>
-            <td class="px-6 py-4 text-sm text-gray-900">
-              {{ (log.prompt_tokens || 0) + (log.completion_tokens || 0) }}
-            </td>
+            <td class="px-6 py-4 text-sm text-gray-900">{{ log.prompt_tokens || 0 }}</td>
+            <td class="px-6 py-4 text-sm text-gray-900">{{ log.completion_tokens || 0 }}</td>
           </tr>
         </tbody>
       </table>

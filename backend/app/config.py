@@ -13,7 +13,6 @@ class Settings(BaseSettings):
 
     # 安全配置
     SECRET_KEY: str
-    ENCRYPTION_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_HOURS: int = 24
 

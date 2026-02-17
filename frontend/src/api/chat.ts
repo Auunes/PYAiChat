@@ -1,9 +1,13 @@
 import api from './index'
-import type { ModelInfo, ChatCompletionRequest } from '@/types'
+import type { ModelInfo, ChatCompletionRequest, Announcement } from '@/types'
 
 export const chatApi = {
   getModels() {
     return api.get<ModelInfo[]>('/chat/models')
+  },
+
+  getAnnouncement() {
+    return api.get<Announcement | null>('/chat/announcement')
   },
 
   async *streamChatCompletion(request: ChatCompletionRequest) {

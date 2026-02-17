@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.database import get_db
-from app.schemas import ChatCompletionRequest, ModelInfo
+from app.schemas import ChatCompletionRequest, ModelInfo, AnnouncementResponse
 from app.services import ChatService, rate_limiter
 from app.utils import decode_access_token
 from app.config import settings
-from typing import Optional
+from app.models import Announcement
+from typing import Optional, List
 import json
 
 router = APIRouter(prefix="/api/chat", tags=["聊天"])
@@ -60,6 +62,19 @@ async def check_user_rate_limit(request: Request, user_id: Optional[int]) -> boo
 async def get_models(db: AsyncSession = Depends(get_db)):
     """获取可用模型列表"""
     return await ChatService.get_available_models(db)
+
+
+@router.get("/announcement", response_model=Optional[AnnouncementResponse])
+async def get_announcement(db: AsyncSession = Depends(get_db)):
+    """获取启用的公告"""
+    result = await db.execute(
+        select(Announcement)
+        .where(Announcement.is_enabled == True)
+        .order_by(Announcement.created_at.desc())
+        .limit(1)
+    )
+    announcement = result.scalar_one_or_none()
+    return announcement
 
 
 @router.post("/completions")

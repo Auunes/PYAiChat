@@ -6,6 +6,8 @@ import type {
   BlockedIP,
   ChatLog,
   Stats,
+  Announcement,
+  AnnouncementCreate,
 } from '@/types'
 
 export const adminApi = {
@@ -71,5 +73,22 @@ export const adminApi = {
   // 统计数据
   getStats() {
     return api.get<Stats>('/admin/stats')
+  },
+
+  // 公告管理
+  getAnnouncements() {
+    return api.get<Announcement[]>('/admin/announcements')
+  },
+
+  createAnnouncement(data: AnnouncementCreate) {
+    return api.post<Announcement>('/admin/announcements', data)
+  },
+
+  updateAnnouncement(id: number, data: Partial<AnnouncementCreate>) {
+    return api.put<Announcement>(`/admin/announcements/${id}`, data)
+  },
+
+  deleteAnnouncement(id: number) {
+    return api.delete(`/admin/announcements/${id}`)
   },
 }
