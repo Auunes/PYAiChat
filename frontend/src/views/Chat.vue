@@ -5,14 +5,31 @@
       <div class="flex items-center justify-between gap-2 sm:gap-4">
         <h1 class="text-lg sm:text-2xl font-bold text-gray-800 flex-shrink-0">AI Chat</h1>
         <div class="flex items-center gap-2 sm:gap-4 flex-wrap justify-end">
-          <select
-            v-model="chatStore.selectedModel"
-            class="px-2 sm:px-4 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-          >
-            <option v-for="model in chatStore.models" :key="model.id" :value="model.id">
-              {{ model.name }}
-            </option>
-          </select>
+          <div class="relative">
+            <button
+              @click="showModelDropdown = !showModelDropdown"
+              class="px-2 sm:px-4 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none bg-white hover:bg-gray-50 transition flex items-center gap-2 min-w-[120px] justify-between"
+            >
+              <span class="truncate">{{ chatStore.models.find(m => m.id === chatStore.selectedModel)?.name || '选择模型' }}</span>
+              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div
+              v-if="showModelDropdown"
+              class="absolute top-full left-0 mt-1 w-full min-w-[200px] bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-[300px] overflow-y-auto"
+            >
+              <button
+                v-for="model in chatStore.models"
+                :key="model.id"
+                @click="selectModel(model.id)"
+                class="w-full px-3 sm:px-4 py-2 text-sm text-left hover:bg-gray-100 transition"
+                :class="{ 'bg-primary-50 text-primary-700 font-medium': model.id === chatStore.selectedModel }"
+              >
+                {{ model.name }}
+              </button>
+            </div>
+          </div>
 
           <div v-if="userStore.isLoggedIn" class="flex items-center gap-1 sm:gap-2">
             <span class="text-xs sm:text-sm text-gray-600 hidden sm:inline">已登录</span>
@@ -261,7 +278,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
 import { useUserStore } from '@/stores/user'
@@ -297,6 +314,7 @@ const tempPrompt = ref('')
 const showAnnouncementModal = ref(false)
 const announcement = ref<any>(null)
 const showClearConfirm = ref(false)
+const showModelDropdown = ref(false)
 
 // 预设提示词
 const promptPresets = [
@@ -353,7 +371,20 @@ const openPromptModal = () => {
   showPromptModal.value = true
 }
 
+const selectModel = (modelId: string) => {
+  chatStore.selectedModel = modelId
+  showModelDropdown.value = false
+}
+
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as HTMLElement
+  if (!target.closest('.relative')) {
+    showModelDropdown.value = false
+  }
+}
+
 onMounted(async () => {
+  document.addEventListener('click', handleClickOutside)
   try {
     await chatStore.loadModels()
     tempPrompt.value = chatStore.systemPrompt
@@ -372,6 +403,10 @@ onMounted(async () => {
     // 公告加载失败不显示错误，静默处理
     console.log('加载公告失败:', error)
   }
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 
 watch(
