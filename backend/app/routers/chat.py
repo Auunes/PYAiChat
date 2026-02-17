@@ -14,7 +14,7 @@ import json
 router = APIRouter(prefix="/api/chat", tags=["聊天"])
 
 
-async def get_current_user(request: Request) -> tuple[Optional[int], Optional[str]]:
+async def get_current_user(request: Request, db: AsyncSession) -> tuple[Optional[int], Optional[str]]:
     """获取当前用户（可选）"""
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
@@ -26,7 +26,14 @@ async def get_current_user(request: Request) -> tuple[Optional[int], Optional[st
         return None, None
 
     user_id = int(payload.get("sub"))
-    return user_id, None  # username 可以从数据库查询，这里简化
+
+    # 从数据库查询用户邮箱
+    from app.models import User
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    username = user.email if user else None
+
+    return user_id, username
 
 
 async def check_user_rate_limit(request: Request, user_id: Optional[int]) -> bool:
@@ -85,7 +92,7 @@ async def chat_completions(
 ):
     """聊天完成（流式）"""
     # 获取用户信息
-    user_id, username = await get_current_user(request)
+    user_id, username = await get_current_user(request, db)
 
     # 检查用户限流
     await check_user_rate_limit(request, user_id)

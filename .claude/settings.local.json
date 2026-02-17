@@ -15,7 +15,8 @@
       "Bash(test:*)",
       "Bash(timeout 5 ../.venv/Scripts/python.exe:*)",
       "Bash(start /B ../.venv/Scripts/python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(python -m py_compile:*)"
     ]
   }
 }
