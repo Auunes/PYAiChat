@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-col h-screen bg-gray-50">
+  <div class="flex flex-col bg-gray-50" style="height: 100dvh;">
     <!-- Header -->
-    <header class="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+    <header class="bg-white border-b border-gray-200 px-3 sm:px-6 py-2 sm:py-4 flex-shrink-0">
       <div class="flex items-center justify-between gap-2 sm:gap-4">
         <h1 class="text-lg sm:text-2xl font-bold text-gray-800 flex-shrink-0">AI Chat</h1>
         <div class="flex items-center gap-2 sm:gap-4 flex-wrap justify-end">
@@ -35,7 +35,7 @@
     </header>
 
     <!-- Chat Messages -->
-    <div ref="messagesContainer" class="flex-1 overflow-y-auto px-3 sm:px-6 py-3 sm:py-4 space-y-3 sm:space-y-4">
+    <div ref="messagesContainer" class="flex-1 overflow-y-auto px-3 sm:px-6 py-2 sm:py-4 space-y-2 sm:space-y-4 min-h-0">
       <div v-if="chatStore.messages.length === 0" class="text-center text-gray-500 mt-10 sm:mt-20">
         <p class="text-base sm:text-lg">开始与 AI 对话吧！</p>
       </div>
@@ -84,28 +84,28 @@
     </div>
 
     <!-- Input Area -->
-    <div class="bg-white border-t border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
-      <form @submit.prevent="handleSend" class="flex flex-col sm:flex-row gap-2 sm:gap-4">
+    <div class="bg-white border-t border-gray-200 px-3 sm:px-6 py-2 sm:py-4 flex-shrink-0">
+      <form @submit.prevent="handleSend" class="flex flex-col gap-2">
         <input
           v-model="inputMessage"
           type="text"
           :disabled="chatStore.isStreaming"
           placeholder="输入消息..."
-          class="flex-1 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition disabled:opacity-50"
+          class="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition disabled:opacity-50"
         />
-        <div class="flex gap-2 sm:gap-4">
+        <div class="flex gap-2">
           <button
             type="button"
             @click="openPromptModal"
             :disabled="chatStore.isStreaming"
-            class="flex-1 sm:flex-none px-3 sm:px-6 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-lg transition disabled:opacity-50"
+            class="flex-1 px-2 sm:px-6 py-2 text-sm sm:text-base border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-lg transition disabled:opacity-50"
           >
             提示词
           </button>
           <button
             type="submit"
             :disabled="!inputMessage.trim() || chatStore.isStreaming"
-            class="flex-1 sm:flex-none px-3 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
+            class="flex-1 px-2 sm:px-6 py-2 text-sm sm:text-base bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
           >
             发送
           </button>
@@ -113,7 +113,7 @@
             type="button"
             @click="showClearConfirm = true"
             :disabled="chatStore.isStreaming"
-            class="flex-1 sm:flex-none px-3 sm:px-6 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-lg transition disabled:opacity-50"
+            class="flex-1 px-2 sm:px-6 py-2 text-sm sm:text-base border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-lg transition disabled:opacity-50"
           >
             清空
           </button>
