@@ -55,6 +55,7 @@ export interface SystemConfig {
   guest_rpm: number
   user_rpm: number
   log_retention_days: number
+  allow_registration: boolean
 }
 
 export interface BlockedIP {

@@ -7,12 +7,14 @@ class SystemConfigUpdate(BaseModel):
     guest_rpm: Optional[int] = Field(None, ge=1)
     user_rpm: Optional[int] = Field(None, ge=1)
     log_retention_days: Optional[int] = Field(None, ge=1)
+    allow_registration: Optional[bool] = None
 
 
 class SystemConfigResponse(BaseModel):
     guest_rpm: int
     user_rpm: int
     log_retention_days: int
+    allow_registration: bool
 
 
 class BlockedIPCreate(BaseModel):
@@ -53,3 +55,13 @@ class StatsResponse(BaseModel):
     trend_data: List[dict]
     token_stats: dict
     active_users: int
+
+
+class AdminProfileResponse(BaseModel):
+    username: str
+
+
+class AdminProfileUpdate(BaseModel):
+    username: Optional[str] = Field(None, min_length=3)
+    current_password: Optional[str] = None
+    new_password: Optional[str] = Field(None, min_length=6)

@@ -99,4 +99,17 @@ export const adminApi = {
   deleteAnnouncement(id: number) {
     return api.delete(`/admin/announcements/${id}`)
   },
+
+  // 管理员个人资料
+  getAdminProfile() {
+    return api.get<{ username: string }>('/admin/profile')
+  },
+
+  updateAdminProfile(data: {
+    username?: string
+    current_password?: string
+    new_password?: string
+  }) {
+    return api.put('/admin/profile', data)
+  },
 }

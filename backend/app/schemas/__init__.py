@@ -13,6 +13,8 @@ from app.schemas.admin import (
     BlockedIPResponse,
     ChatLogResponse,
     StatsResponse,
+    AdminProfileResponse,
+    AdminProfileUpdate,
 )
 from app.schemas.announcement import (
     AnnouncementCreate,
@@ -39,6 +41,8 @@ __all__ = [
     "BlockedIPResponse",
     "ChatLogResponse",
     "StatsResponse",
+    "AdminProfileResponse",
+    "AdminProfileUpdate",
     "AnnouncementCreate",
     "AnnouncementUpdate",
     "AnnouncementResponse",

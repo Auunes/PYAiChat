@@ -74,6 +74,14 @@
         >
           📢 公告管理
         </router-link>
+        <router-link
+          to="/admin/profile"
+          class="block px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg hover:bg-gray-800 transition"
+          active-class="bg-gray-800"
+          @click="showMobileMenu = false"
+        >
+          👤 个人设置
+        </router-link>
       </nav>
 
       <div class="p-3 sm:p-4 border-t border-gray-800">

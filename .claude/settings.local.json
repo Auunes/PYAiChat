@@ -16,7 +16,8 @@
       "Bash(timeout 5 ../.venv/Scripts/python.exe:*)",
       "Bash(start /B ../.venv/Scripts/python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000)",
       "Bash(npm run build:*)",
-      "Bash(python -m py_compile:*)"
+      "Bash(python -m py_compile:*)",
+      "Bash(python migrations/add_allow_registration_config.py:*)"
     ]
   }
 }

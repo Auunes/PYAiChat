@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.database import get_db
 from app.schemas import UserCreate, UserLogin, Token, AdminLogin
 from app.services import AuthService
+from app.models import SystemConfig
 
 router = APIRouter(prefix="/api/auth", tags=["认证"])
 
@@ -10,6 +12,17 @@ router = APIRouter(prefix="/api/auth", tags=["认证"])
 @router.post("/register", response_model=dict)
 async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     """用户注册"""
+    # 检查是否允许注册
+    result = await db.execute(select(SystemConfig).where(SystemConfig.key == "allow_registration"))
+    config = result.scalar_one_or_none()
+    allow_registration = config.value.lower() == "true" if config else True
+
+    if not allow_registration:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="当前系统不允许新用户注册"
+        )
+
     try:
         await AuthService.create_user(db, user_data)
         return {"message": "注册成功"}

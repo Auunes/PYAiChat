@@ -16,6 +16,8 @@ from app.schemas import (
     AnnouncementCreate,
     AnnouncementUpdate,
     AnnouncementResponse,
+    AdminProfileResponse,
+    AdminProfileUpdate,
 )
 from app.services import ChannelService
 from app.utils import decode_access_token, is_ip_in_range
@@ -140,6 +142,7 @@ async def get_config(
         guest_rpm=int(configs.get("guest_rpm", settings.GUEST_RPM)),
         user_rpm=int(configs.get("user_rpm", settings.USER_RPM)),
         log_retention_days=int(configs.get("log_retention_days", settings.LOG_RETENTION_DAYS)),
+        allow_registration=configs.get("allow_registration", "true").lower() == "true",
     )
 
 
@@ -439,3 +442,54 @@ async def delete_announcement(
     await db.delete(announcement)
     await db.commit()
     return {"message": "删除成功"}
+
+
+# ==================== 管理员个人资料 ====================
+
+
+@router.get("/profile", response_model=AdminProfileResponse)
+async def get_admin_profile(
+    admin: dict = Depends(verify_admin),
+):
+    """获取管理员个人资料"""
+    return AdminProfileResponse(username=admin.get("sub", settings.ADMIN_USERNAME))
+
+
+@router.put("/profile")
+async def update_admin_profile(
+    profile_data: AdminProfileUpdate,
+    admin: dict = Depends(verify_admin),
+):
+    """更新管理员个人资料"""
+    import os
+    from dotenv import load_dotenv, set_key
+
+    # 获取.env文件路径
+    env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "..", ".env")
+
+    # 验证当前密码（如果要修改密码）
+    if profile_data.new_password:
+        if not profile_data.current_password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="修改密码需要提供当前密码"
+            )
+        if profile_data.current_password != settings.ADMIN_PASSWORD:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="当前密码错误"
+            )
+
+    # 更新用户名
+    if profile_data.username and profile_data.username != settings.ADMIN_USERNAME:
+        if os.path.exists(env_path):
+            set_key(env_path, "ADMIN_USERNAME", profile_data.username)
+            settings.ADMIN_USERNAME = profile_data.username
+
+    # 更新密码
+    if profile_data.new_password:
+        if os.path.exists(env_path):
+            set_key(env_path, "ADMIN_PASSWORD", profile_data.new_password)
+            settings.ADMIN_PASSWORD = profile_data.new_password
+
+    return {"message": "更新成功，请重新登录"}
