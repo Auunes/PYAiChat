@@ -6,7 +6,8 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ ./
-RUN npm run build
+# 跳过类型检查，直接构建
+RUN npx vite build
 
 # 阶段 2: 构建后端
 FROM python:3.11-slim

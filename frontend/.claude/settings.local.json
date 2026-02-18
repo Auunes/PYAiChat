@@ -6,7 +6,8 @@
       "Bash(netstat:*)",
       "Bash(pkill:*)",
       "Bash(taskkill:*)",
-      "Bash(xargs kill:*)"
+      "Bash(xargs kill:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }
