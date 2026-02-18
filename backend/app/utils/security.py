@@ -1,26 +1,55 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from app.config import settings
 import hashlib
+import secrets
 
-# 密码加密上下文
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# 使用 PBKDF2-SHA256 替代 bcrypt，支持任意长度密码
+HASH_ITERATIONS = 100000  # PBKDF2 迭代次数
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """验证密码"""
-    # 先用 SHA-256 哈希密码，解决 bcrypt 72 字节限制
-    password_hash = hashlib.sha256(plain_password.encode('utf-8')).hexdigest()
-    return pwd_context.verify(password_hash, hashed_password)
+    try:
+        # 格式: algorithm$salt$hash
+        parts = hashed_password.split('$')
+        if len(parts) != 3:
+            return False
+
+        algorithm, salt, stored_hash = parts
+        if algorithm != 'pbkdf2_sha256':
+            return False
+
+        # 使用相同的 salt 计算哈希
+        password_hash = hashlib.pbkdf2_hmac(
+            'sha256',
+            plain_password.encode('utf-8'),
+            bytes.fromhex(salt),
+            HASH_ITERATIONS
+        ).hex()
+
+        # 常量时间比较，防止时序攻击
+        return secrets.compare_digest(password_hash, stored_hash)
+    except Exception:
+        return False
 
 
 def get_password_hash(password: str) -> str:
     """生成密码哈希"""
-    # 先用 SHA-256 哈希密码，解决 bcrypt 72 字节限制
-    password_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
-    return pwd_context.hash(password_hash)
+    # 生成随机 salt (32 字节)
+    salt = secrets.token_bytes(32)
+
+    # 使用 PBKDF2-SHA256 计算哈希
+    password_hash = hashlib.pbkdf2_hmac(
+        'sha256',
+        password.encode('utf-8'),
+        salt,
+        HASH_ITERATIONS
+    ).hex()
+
+    # 返回格式: algorithm$salt$hash
+    return f'pbkdf2_sha256${salt.hex()}${password_hash}'
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
