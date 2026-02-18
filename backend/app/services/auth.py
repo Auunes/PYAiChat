@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.models import User
+from app.models import User, Admin
 from app.schemas import UserCreate
 from app.utils import get_password_hash, verify_password, create_access_token
 from app.config import settings
@@ -37,12 +37,41 @@ class AuthService:
         return user
 
     @staticmethod
-    def authenticate_admin(username: str, password: str) -> bool:
-        """验证管理员"""
-        return (
-            username == settings.ADMIN_USERNAME
-            and password == settings.ADMIN_PASSWORD
-        )
+    async def authenticate_admin(db: AsyncSession, username: str, password: str) -> bool:
+        """验证管理员 - 优先从数据库验证，如果数据库没有则使用配置文件"""
+        # 先从数据库查找管理员
+        result = await db.execute(select(Admin).where(Admin.username == username))
+        admin = result.scalar_one_or_none()
+
+        if admin:
+            # 数据库中存在管理员记录，使用数据库验证
+            return verify_password(password, admin.password_hash)
+        else:
+            # 数据库中不存在，使用配置文件验证
+            return (
+                username == settings.ADMIN_USERNAME
+                and password == settings.ADMIN_PASSWORD
+            )
+
+    @staticmethod
+    async def update_admin_password(db: AsyncSession, username: str, new_password: str) -> Admin:
+        """更新管理员密码 - 如果数据库中不存在则创建"""
+        result = await db.execute(select(Admin).where(Admin.username == username))
+        admin = result.scalar_one_or_none()
+
+        hashed_password = get_password_hash(new_password)
+
+        if admin:
+            # 更新现有管理员密码
+            admin.password_hash = hashed_password
+        else:
+            # 创建新的管理员记录
+            admin = Admin(username=username, password_hash=hashed_password)
+            db.add(admin)
+
+        await db.commit()
+        await db.refresh(admin)
+        return admin
 
     @staticmethod
     def create_token(subject: str, token_type: str = "user") -> str:

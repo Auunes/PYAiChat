@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, extract
 from app.database import get_db
-from app.models import Channel, SystemConfig, BlockedIP, ChatLog, Announcement
+from app.models import Channel, SystemConfig, BlockedIP, ChatLog, Announcement, Admin
 from app.schemas import (
     ChannelCreate,
     ChannelUpdate,
@@ -19,8 +19,8 @@ from app.schemas import (
     AdminProfileResponse,
     AdminProfileUpdate,
 )
-from app.services import ChannelService
-from app.utils import decode_access_token, is_ip_in_range
+from app.services import ChannelService, AuthService
+from app.utils import decode_access_token, is_ip_in_range, verify_password
 from app.config import settings
 from typing import List, Optional
 from datetime import datetime, timedelta
@@ -459,13 +459,14 @@ async def get_admin_profile(
 async def update_admin_profile(
     profile_data: AdminProfileUpdate,
     admin: dict = Depends(verify_admin),
+    db: AsyncSession = Depends(get_db),
 ):
     """更新管理员个人资料"""
-    import os
-    from dotenv import load_dotenv, set_key
+    current_username = admin.get("sub")
 
-    # 获取.env文件路径
-    env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "..", ".env")
+    # 查询数据库中的管理员记录
+    result = await db.execute(select(Admin).where(Admin.username == current_username))
+    db_admin = result.scalar_one_or_none()
 
     # 验证当前密码（如果要修改密码）
     if profile_data.new_password:
@@ -474,22 +475,37 @@ async def update_admin_profile(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="修改密码需要提供当前密码"
             )
-        if profile_data.current_password != settings.ADMIN_PASSWORD:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="当前密码错误"
-            )
 
-    # 更新用户名
-    if profile_data.username and profile_data.username != settings.ADMIN_USERNAME:
-        if os.path.exists(env_path):
-            set_key(env_path, "ADMIN_USERNAME", profile_data.username)
-            settings.ADMIN_USERNAME = profile_data.username
+        # 验证当前密码
+        if db_admin:
+            # 数据库中有记录，验证数据库密码
+            if not verify_password(profile_data.current_password, db_admin.password_hash):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="当前密码错误"
+                )
+        else:
+            # 数据库中没有记录，验证配置文件密码
+            if profile_data.current_password != settings.ADMIN_PASSWORD:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="当前密码错误"
+                )
 
-    # 更新密码
-    if profile_data.new_password:
-        if os.path.exists(env_path):
-            set_key(env_path, "ADMIN_PASSWORD", profile_data.new_password)
-            settings.ADMIN_PASSWORD = profile_data.new_password
+    # 更新用户名和密码
+    new_username = profile_data.username if profile_data.username else current_username
+    new_password = profile_data.new_password
+
+    if new_password:
+        # 如果修改了密码，更新或创建数据库记录
+        await AuthService.update_admin_password(db, new_username, new_password)
+    elif profile_data.username and profile_data.username != current_username:
+        # 如果只修改了用户名，也需要更新数据库
+        if db_admin:
+            db_admin.username = new_username
+            await db.commit()
+        else:
+            # 如果数据库中没有记录，使用配置文件的密码创建记录
+            await AuthService.update_admin_password(db, new_username, settings.ADMIN_PASSWORD)
 
     return {"message": "更新成功，请重新登录"}

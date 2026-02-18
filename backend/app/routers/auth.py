@@ -49,9 +49,9 @@ async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/admin/login", response_model=Token)
-async def admin_login(admin_data: AdminLogin):
+async def admin_login(admin_data: AdminLogin, db: AsyncSession = Depends(get_db)):
     """管理员登录"""
-    if not AuthService.authenticate_admin(admin_data.username, admin_data.password):
+    if not await AuthService.authenticate_admin(db, admin_data.username, admin_data.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="用户名或密码错误",
