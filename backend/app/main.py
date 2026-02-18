@@ -84,7 +84,13 @@ app.include_router(admin_router)
 
 
 # 静态文件服务（前端）
+# Docker 环境下前端文件在 /app/frontend/dist
+# 本地开发环境下在 ../../frontend/dist
 frontend_dist = os.path.join(os.path.dirname(__file__), "../../frontend/dist")
+if not os.path.exists(frontend_dist):
+    # Docker 环境路径
+    frontend_dist = "/app/frontend/dist"
+
 if os.path.exists(frontend_dist):
     app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
 
