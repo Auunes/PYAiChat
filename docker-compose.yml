@@ -2,23 +2,21 @@ version: '3.8'
 
 services:
   app:
-    build: .
-    image: pyaichat:latest
+    image: ghcr.io/auunes/pyaichat:latest
     container_name: pyaichat
     ports:
       - "8000:8000"
     volumes:
       - ./data:/app/data
     environment:
-      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-change_me}
-      - SECRET_KEY=${SECRET_KEY:-your_secret_key_here}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-your_encryption_key_here}
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=adminadmin
+      - SECRET_KEY=hAb9ARG73ZWNJGw-e1HnU7NptvSX074vbNReIDNUaTM
       - DATABASE_PATH=/app/data/chat.db
-      - LOG_RETENTION_DAYS=${LOG_RETENTION_DAYS:-90}
-      - GUEST_RPM=${GUEST_RPM:-10}
-      - USER_RPM=${USER_RPM:-60}
-      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+      - LOG_RETENTION_DAYS=90
+      - GUEST_RPM=10
+      - USER_RPM=60
+      - CORS_ORIGINS=*
       - APP_PORT=8000
       - DEBUG=False
     restart: unless-stopped
