@@ -101,9 +101,8 @@
     <div
       v-if="showModal"
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4"
-      @click="showModal = false"
     >
-      <div class="bg-white rounded-lg p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto" @click.stop>
+      <div class="bg-white rounded-lg p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
           {{ editingId ? '编辑公告' : '新建公告' }}
         </h3>

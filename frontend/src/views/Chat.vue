@@ -142,9 +142,8 @@
     <div
       v-if="showPromptModal"
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-      @click="showPromptModal = false"
     >
-      <div class="bg-white rounded-lg p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto" @click.stop>
+      <div class="bg-white rounded-lg p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">系统提示词设置</h3>
         <p class="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
           系统提示词会在每次对话时自动添加到消息开头，用于设定 AI 的角色、行为和回复风格。
