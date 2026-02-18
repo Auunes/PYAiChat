@@ -30,5 +30,9 @@ async def get_db():
 
 # 初始化数据库
 async def init_db():
+    """初始化数据库，确保所有表都存在"""
+    # 导入所有模型以确保它们被注册到 Base.metadata
+    from app.models import User, Channel, SystemConfig, BlockedIP, ChatLog, Announcement, Admin
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
