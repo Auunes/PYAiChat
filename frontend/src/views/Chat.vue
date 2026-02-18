@@ -435,16 +435,7 @@ const handleSend = async () => {
   const message = inputMessage.value
   inputMessage.value = ''
 
-  try {
-    await chatStore.sendMessage(message)
-  } catch (error: any) {
-    if (error.response?.status === 429) {
-      const detail = error.response.data.detail
-      errorMessage.value = detail.error?.message || '请求过于频繁，请稍后再试'
-    } else {
-      errorMessage.value = '发送消息失败，请稍后重试'
-    }
-  }
+  await chatStore.sendMessage(message)
 }
 
 const handleLogout = () => {

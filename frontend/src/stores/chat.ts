@@ -44,7 +44,13 @@ export const useChatStore = defineStore('chat', () => {
 
       for await (const chunk of stream) {
         if (chunk.error) {
-          throw new Error(chunk.error.message)
+          // 根据错误类型显示不同的消息
+          if (chunk.error.type === 'upstream_rate_limit') {
+            messages.value[assistantMessageIndex].content = '问的人太多啦，换一个模型试试吧'
+          } else {
+            messages.value[assistantMessageIndex].content = chunk.error.message
+          }
+          return
         }
 
         if (chunk.choices && chunk.choices[0]?.delta) {
@@ -65,7 +71,18 @@ export const useChatStore = defineStore('chat', () => {
         }
       }
     } catch (error: any) {
-      messages.value[assistantMessageIndex].content = `错误: ${error.message}`
+      // 处理 HTTP 429 错误（用户限流）
+      if (error.status === 429 && error.errorType === 'user_rate_limit') {
+        messages.value[assistantMessageIndex].content = '提问速度太快啦～请休息一下，稍后再尝试。'
+      }
+      // 处理其他 429 错误
+      else if (error.status === 429) {
+        messages.value[assistantMessageIndex].content = error.message || '请求过于频繁，请稍后再试'
+      }
+      // 处理其他错误
+      else {
+        messages.value[assistantMessageIndex].content = error.message || '发送消息失败，请稍后重试'
+      }
     } finally {
       isStreaming.value = false
     }

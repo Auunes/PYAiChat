@@ -26,6 +26,22 @@ export const chatApi = {
     })
 
     if (!response.ok) {
+      // 处理 429 错误，解析错误详情
+      if (response.status === 429) {
+        try {
+          const errorData = await response.json()
+          const error: any = new Error(errorData.detail?.error?.message || '请求过于频繁')
+          error.status = 429
+          error.errorType = errorData.detail?.error?.type || 'rate_limit'
+          throw error
+        } catch (e: any) {
+          if (e.status === 429) throw e
+          // JSON 解析失败，抛出通用错误
+          const error: any = new Error('请求过于频繁')
+          error.status = 429
+          throw error
+        }
+      }
       throw new Error(`HTTP error! status: ${response.status}`)
     }
 

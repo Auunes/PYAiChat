@@ -56,7 +56,7 @@ class ChatService:
             channel_key, channel.rpm_limit
         )
         if not allowed:
-            yield f"data: {json.dumps({'error': {'type': 'upstream_error', 'message': '上游渠道暂时不可用，请稍后再试'}})}\n\n"
+            yield f"data: {json.dumps({'error': {'type': 'upstream_rate_limit', 'message': '问的人太多啦，换一个模型试试吧'}})}\n\n"
             return
 
         # 调用上游 API
@@ -90,6 +90,9 @@ class ChatService:
                     headers=headers,
                     json=payload,
                 ) as response:
+                    if response.status_code == 429:
+                        yield f"data: {json.dumps({'error': {'type': 'upstream_rate_limit', 'message': '问的人太多啦，换一个模型试试吧'}})}\n\n"
+                        return
                     if response.status_code != 200:
                         yield f"data: {json.dumps({'error': {'type': 'upstream_error', 'message': '上游渠道返回错误'}})}\n\n"
                         return
