@@ -102,27 +102,27 @@
 
     <!-- Input Area -->
     <div class="bg-white border-t border-gray-200 px-3 sm:px-6 py-2 sm:py-4 flex-shrink-0">
-      <form @submit.prevent="handleSend" class="flex flex-col gap-2">
+      <form @submit.prevent="handleSend" class="flex flex-col sm:flex-row gap-2">
         <input
           v-model="inputMessage"
           type="text"
           :disabled="chatStore.isStreaming"
           placeholder="输入消息..."
-          class="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition disabled:opacity-50"
+          class="w-full sm:flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition disabled:opacity-50"
         />
-        <div class="flex gap-2">
+        <div class="flex gap-2 sm:flex-shrink-0">
           <button
             type="button"
             @click="openPromptModal"
             :disabled="chatStore.isStreaming"
-            class="flex-1 px-2 sm:px-6 py-2 text-sm sm:text-base border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-lg transition disabled:opacity-50"
+            class="flex-1 sm:flex-none px-2 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-lg transition disabled:opacity-50 whitespace-nowrap"
           >
             提示词
           </button>
           <button
             type="submit"
             :disabled="!inputMessage.trim() || chatStore.isStreaming"
-            class="flex-1 px-2 sm:px-6 py-2 text-sm sm:text-base bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
+            class="flex-1 sm:flex-none px-2 sm:px-4 py-2 text-sm sm:text-base bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition disabled:opacity-50 whitespace-nowrap"
           >
             发送
           </button>
@@ -130,7 +130,7 @@
             type="button"
             @click="showClearConfirm = true"
             :disabled="chatStore.isStreaming"
-            class="flex-1 px-2 sm:px-6 py-2 text-sm sm:text-base border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-lg transition disabled:opacity-50"
+            class="flex-1 sm:flex-none px-2 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-lg transition disabled:opacity-50 whitespace-nowrap"
           >
             清空
           </button>
