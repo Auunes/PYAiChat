@@ -3,7 +3,7 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
       <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 pl-12 lg:pl-0">渠道管理</h2>
       <button
-        @click="showCreateModal = true"
+        @click="resetForm(); showCreateModal = true"
         class="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition"
       >
         添加渠道
@@ -189,7 +189,7 @@
             <button type="submit" class="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-primary-600 text-white rounded-lg">
               {{ editingChannel ? '更新' : '创建' }}
             </button>
-            <button type="button" @click="showCreateModal = false" class="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg">
+            <button type="button" @click="showCreateModal = false; resetForm()" class="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg">
               取消
             </button>
           </div>
@@ -249,6 +249,19 @@ const editChannel = (channel: Channel) => {
   showCreateModal.value = true
 }
 
+const resetForm = () => {
+  formData.value = {
+    name: '',
+    base_url: '',
+    api_key: '',
+    model_id: '',
+    rpm_limit: 60,
+    is_enabled: true,
+  }
+  editingChannel.value = null
+  showApiKey.value = false
+}
+
 const handleSubmit = async () => {
   try {
     if (editingChannel.value) {
@@ -257,7 +270,7 @@ const handleSubmit = async () => {
       await adminApi.createChannel(formData.value)
     }
     showCreateModal.value = false
-    editingChannel.value = null
+    resetForm()
     await loadChannels()
   } catch (error) {
     console.error('Failed to save channel:', error)
