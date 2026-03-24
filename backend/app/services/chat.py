@@ -98,23 +98,63 @@ class ChatService:
                         return
 
                     completion_text = ""
+                    in_think = False  # 跟踪是否在 <think> 块内（如 Grok）
                     async for line in response.aiter_lines():
                         if line.startswith("data: "):
                             data = line[6:]
                             if data == "[DONE]":
                                 yield f"data: [DONE]\n\n"
                                 break
-                            yield f"{line}\n\n"
 
-                            # 提取完成文本用于 token 估算
                             try:
                                 chunk = json.loads(data)
                                 if "choices" in chunk and len(chunk["choices"]) > 0:
                                     delta = chunk["choices"][0].get("delta", {})
-                                    if "content" in delta:
-                                        completion_text += delta["content"]
+                                    content = delta.get("content", "")
+
+                                    # 处理 <think>...</think> 标签，转换为 reasoning_content
+                                    if content and (in_think or "<think>" in content or "</think>" in content):
+                                        reasoning_text = ""
+                                        content_text = ""
+                                        pos = 0
+                                        while pos < len(content):
+                                            if in_think:
+                                                end = content.find("</think>", pos)
+                                                if end != -1:
+                                                    reasoning_text += content[pos:end]
+                                                    pos = end + 8
+                                                    in_think = False
+                                                else:
+                                                    reasoning_text += content[pos:]
+                                                    pos = len(content)
+                                            else:
+                                                start = content.find("<think>", pos)
+                                                if start != -1:
+                                                    content_text += content[pos:start]
+                                                    pos = start + 7
+                                                    in_think = True
+                                                else:
+                                                    content_text += content[pos:]
+                                                    pos = len(content)
+
+                                        new_delta = {k: v for k, v in delta.items() if k != "content"}
+                                        if reasoning_text:
+                                            new_delta["reasoning_content"] = reasoning_text
+                                        if content_text:
+                                            new_delta["content"] = content_text
+                                            completion_text += content_text
+
+                                        if reasoning_text or content_text:
+                                            chunk["choices"][0]["delta"] = new_delta
+                                            yield f"data: {json.dumps(chunk)}\n\n"
+                                        continue
+
+                                    if content:
+                                        completion_text += content
                             except:
                                 pass
+
+                            yield f"{line}\n\n"
 
             # 估算 completion tokens
             completion_tokens = estimate_tokens(completion_text)

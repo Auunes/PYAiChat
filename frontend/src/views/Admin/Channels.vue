@@ -2,12 +2,26 @@
   <div class="p-3 sm:p-6 lg:p-8">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
       <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 pl-12 lg:pl-0">渠道管理</h2>
-      <button
-        @click="resetForm(); showCreateModal = true"
-        class="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition"
-      >
-        添加渠道
-      </button>
+      <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+        <button
+          @click="exportChannels"
+          class="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition"
+        >
+          导出
+        </button>
+        <button
+          @click="showImportModal = true"
+          class="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition"
+        >
+          导入
+        </button>
+        <button
+          @click="resetForm(); showCreateModal = true"
+          class="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition"
+        >
+          添加渠道
+        </button>
+      </div>
     </div>
 
     <div v-if="loading" class="text-center py-10 sm:py-20">
@@ -196,6 +210,89 @@
         </form>
       </div>
     </div>
+
+    <!-- Import Modal -->
+    <div
+      v-if="showImportModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4"
+    >
+      <div class="bg-white rounded-lg p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <h3 class="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">导入渠道</h3>
+        <div class="space-y-3 sm:space-y-4">
+          <div>
+            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">粘贴 JSON 数据</label>
+            <textarea
+              v-model="importData"
+              rows="12"
+              placeholder='[{"name":"渠道1","base_url":"https://...","api_key":"sk-...","model_id":"gpt-4","rpm_limit":60,"is_enabled":true}]'
+              class="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border rounded-lg font-mono"
+            ></textarea>
+          </div>
+          <div v-if="importError" class="text-red-600 text-sm">
+            {{ importError }}
+          </div>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <button
+              type="button"
+              @click="handleImport"
+              :disabled="importing"
+              class="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white rounded-lg transition"
+            >
+              {{ importing ? '导入中...' : '导入' }}
+            </button>
+            <button
+              type="button"
+              @click="showImportModal = false; importData = ''; importError = ''"
+              class="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div
+      v-if="showExportModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4"
+    >
+      <div class="bg-white rounded-lg p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <h3 class="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">导出渠道</h3>
+        <div class="space-y-3 sm:space-y-4">
+          <div>
+            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">JSON 数据（点击复制）</label>
+            <textarea
+              ref="exportTextarea"
+              :value="exportData"
+              readonly
+              rows="12"
+              class="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border rounded-lg font-mono bg-gray-50"
+              @click="copyExportData"
+            ></textarea>
+          </div>
+          <div v-if="copySuccess" class="text-green-600 text-sm">
+            已复制到剪贴板！
+          </div>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <button
+              type="button"
+              @click="copyExportData"
+              class="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition"
+            >
+              复制
+            </button>
+            <button
+              type="button"
+              @click="showExportModal = false; copySuccess = false"
+              class="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg"
+            >
+              关闭
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -207,9 +304,17 @@ import type { Channel, ChannelCreate } from '@/types'
 const channels = ref<Channel[]>([])
 const loading = ref(true)
 const showCreateModal = ref(false)
+const showImportModal = ref(false)
+const showExportModal = ref(false)
 const editingChannel = ref<Channel | null>(null)
 const showApiKey = ref(false)
 const testing = ref(false)
+const importing = ref(false)
+const importData = ref('')
+const importError = ref('')
+const exportData = ref('')
+const copySuccess = ref(false)
+const exportTextarea = ref<HTMLTextAreaElement | null>(null)
 const draggedIndex = ref<number | null>(null)
 const dragOverIndex = ref<number | null>(null)
 const formData = ref<ChannelCreate>({
@@ -353,6 +458,109 @@ const handleDrop = async (dropIndex: number) => {
 
 const handleDragEnd = () => {
   // 不在这里清理状态，在handleDrop中清理
+}
+
+const exportChannels = () => {
+  // 导出渠道数据，只包含创建渠道所需的字段
+  const exportChannels = channels.value.map(channel => ({
+    name: channel.name,
+    base_url: channel.base_url,
+    api_key: channel.api_key,
+    model_id: channel.model_id,
+    rpm_limit: channel.rpm_limit,
+    is_enabled: channel.is_enabled,
+  }))
+  exportData.value = JSON.stringify(exportChannels, null, 2)
+  showExportModal.value = true
+  copySuccess.value = false
+}
+
+const copyExportData = async () => {
+  try {
+    await navigator.clipboard.writeText(exportData.value)
+    copySuccess.value = true
+    setTimeout(() => {
+      copySuccess.value = false
+    }, 2000)
+  } catch (error) {
+    // 如果 clipboard API 不可用，使用传统方法
+    if (exportTextarea.value) {
+      exportTextarea.value.select()
+      document.execCommand('copy')
+      copySuccess.value = true
+      setTimeout(() => {
+        copySuccess.value = false
+      }, 2000)
+    }
+  }
+}
+
+const handleImport = async () => {
+  importError.value = ''
+
+  if (!importData.value.trim()) {
+    importError.value = '请输入 JSON 数据'
+    return
+  }
+
+  try {
+    const channelsToImport: ChannelCreate[] = JSON.parse(importData.value)
+
+    if (!Array.isArray(channelsToImport)) {
+      importError.value = 'JSON 数据必须是数组格式'
+      return
+    }
+
+    // 验证每个渠道的必需字段
+    for (let i = 0; i < channelsToImport.length; i++) {
+      const channel = channelsToImport[i]
+      if (!channel.name || !channel.base_url || !channel.api_key || !channel.model_id) {
+        importError.value = `第 ${i + 1} 个渠道缺少必需字段（name, base_url, api_key, model_id）`
+        return
+      }
+      // 设置默认值
+      if (channel.rpm_limit === undefined) {
+        channel.rpm_limit = 60
+      }
+      if (channel.is_enabled === undefined) {
+        channel.is_enabled = true
+      }
+    }
+
+    importing.value = true
+
+    // 逐个导入渠道
+    let successCount = 0
+    let failCount = 0
+    for (const channel of channelsToImport) {
+      try {
+        await adminApi.createChannel(channel)
+        successCount++
+      } catch (error) {
+        console.error('Failed to import channel:', channel.name, error)
+        failCount++
+      }
+    }
+
+    importing.value = false
+    showImportModal.value = false
+    importData.value = ''
+
+    await loadChannels()
+
+    if (failCount === 0) {
+      alert(`成功导入 ${successCount} 个渠道`)
+    } else {
+      alert(`导入完成：成功 ${successCount} 个，失败 ${failCount} 个`)
+    }
+  } catch (error) {
+    importing.value = false
+    if (error instanceof SyntaxError) {
+      importError.value = 'JSON 格式错误，请检查数据格式'
+    } else {
+      importError.value = '导入失败：' + (error as Error).message
+    }
+  }
 }
 
 onMounted(loadChannels)
